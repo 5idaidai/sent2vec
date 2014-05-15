@@ -261,6 +261,7 @@ def update_sent_vec(sent_vec, grad, lock, alpha):
         sent_vec += alpha * grad
         sent_vec /= LA.norm(sent_vec)
 
+
 def update_window( vocab, key, grad, lock, alpha):
     word_ids = [int(id) for id in key.split('-')]
     for id in word_ids:
@@ -268,6 +269,13 @@ def update_window( vocab, key, grad, lock, alpha):
         with lock:
             word_vec += alpha * grad
             word_vec /= LA.norm(word_vec)
+
+
+def show_status(results_queue):
+    qsize = results_queue.qsize()
+    if qsize % 100 == 0:
+        print '.. qsize:', qsize
+
 
 def train_worker(vec_size, k, alpha, queue, results_queue, sent_dic, sent_vecs, vocab_dic, vocab_vecs, table, win_count_dic, lock ):
     # change shared Array to numpy array
@@ -313,6 +321,7 @@ def train_worker(vec_size, k, alpha, queue, results_queue, sent_dic, sent_vecs, 
         current = mp.current_process()
         #print "%s Jn: %f" % (current.name, Jn)
         sentence = queue.get()
+        show_status(results_queue)
     print "process %s exit!" % current.name
 
 
@@ -320,12 +329,6 @@ def producer(dataset, n_workers, queue, n_turns=30):
     '''
     put  sentences to queue
     '''
-    def show_status():
-        qsize = queue.qsize()
-        if qsize % 100 == 0:
-            print '.. qsize:', qsize
-
-    show_status()
     for i in xrange(n_turns):
         for no, sent in enumerate(dataset.sents):
             queue.put(sent)
@@ -334,13 +337,29 @@ def producer(dataset, n_workers, queue, n_turns=30):
         queue.put(None)
     print "producer exit!"
 
-def multi_process_run(path, k=2, n_workers=2, n_turns=10, queue_size=200):
-    s2v = Sent2Vec(path, k=k)
+
+def dump_out_data(path, vocab_dic, vocab_vecs, sent_dic, sent_vecs, table, win_count_dic):
+    '''
+    Export model to a binary file
+    '''
+    data = {
+        'vocab_dic': vocab_dic,
+        'vocab_vecs': vocab_vecs,
+        'sent_dic': sent_dic,
+        'sent_vecs': sent_vecs,
+        'table': table,
+        'win_count_dic': win_count_dic,
+        }
+    mod2file(data, path)
+
+
+def multi_process_run(data_path, model_output_path, k=2, n_workers=2, n_turns=10, queue_size=200):
+    s2v = Sent2Vec(data_path, k=k)
     lock = mp.Lock()
     manager = mp.Manager()
-    vocab_dic, vocab_vecs = s2v.vocab.export_mp_data(manager)
-    sent_dic, sent_vecs = s2v.sent.export_mp_data(manager)
-    table, win_count_dic = s2v.window_table.export_mp_data(manager) 
+    vocab_dic, vocab_vecs, ori_vocab_dic, ori_vocab_vecs = s2v.vocab.export_mp_data(manager)
+    sent_dic, sent_vecs, ori_sent_dic, ori_sent_vecs = s2v.sent.export_mp_data(manager)
+    table, win_count_dic, ori_table, ori_win_count_dic = s2v.window_table.export_mp_data(manager) 
     queue = manager.Queue(queue_size)
     results_queue = manager.Queue()
     print '.. start producer'
@@ -372,6 +391,8 @@ def multi_process_run(path, k=2, n_workers=2, n_turns=10, queue_size=200):
         J = np.mean(results[start:start+len_scope])
         print "result :", J
 
+    dump_out_data(model_output_path, ori_vocab_dic, ori_vocab_vecs, ori_sent_dic, ori_sent_vecs, ori_table, ori_win_count_dic)
+
 
 if __name__ == '__main__':
-    multi_process_run("data/1.sample")
+    multi_process_run("data/2.sample", "models/2.pk")

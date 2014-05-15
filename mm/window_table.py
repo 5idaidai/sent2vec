@@ -135,9 +135,11 @@ class WindowTable(object):
         if manager is None:
             manager = mp.Manager()
 
-        table = mp.Array('i', self.table)
-        win_count_dic = manager.dict(self.win_count_dic)
-        return table, win_count_dic
+        ori_table = self.table
+        table = mp.Array('i', ori_table)
+        ori_win_count_dic = self.win_count_dic
+        win_count_dic = manager.dict(ori_win_count_dic)
+        return table, win_count_dic, ori_table, ori_win_count_dic
 
     def __getitem__(self, index):
         return self.table[index]

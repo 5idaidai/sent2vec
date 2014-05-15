@@ -68,14 +68,20 @@ class Vocab(object):
         self.vocab = mod_from_file(path)
 
     def export_mp_data(self, manager=None):
+        '''
+        return:
+            shared vocab dic, vecs
+            and original dic and vecs
+        '''
         if self.vecs is None:
             self.init_vecs()
         if manager is None:
             manager = mp.Manager()
-        vocab = manager.dict(self.vocab)
-        vecs = self.vecs.reshape( len(self.vocab) * self.len_vec)
-        vecs = mp.Array('d', vecs)
-        return [vocab, vecs]
+        ori_vocab = self.vocab
+        vocab = manager.dict(ori_vocab)
+        ori_vecs = self.vecs.reshape( len(self.vocab) * self.len_vec)
+        vecs = mp.Array('d', ori_vecs)
+        return vocab, vecs, ori_vocab, ori_vecs
 
     def __getitem__(self, key):
         if self.vecs is None:

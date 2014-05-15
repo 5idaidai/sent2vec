@@ -49,10 +49,11 @@ class Sent(object):
     def export_mp_data(self, manager=None):
         if manager is None:
             manager = mp.Manager()
-        sent = manager.dict(self.sent)
-        vecs = self.vecs.reshape( len(self.sent) * self.len_vec)
-        vecs = mp.Array('d', vecs)
-        return [sent, vecs]
+        ori_sent = self.sent
+        sent = manager.dict(ori_sent)
+        ori_vecs = self.vecs.reshape( len(self.sent) * self.len_vec)
+        vecs = mp.Array('d', ori_vecs)
+        return sent, vecs, ori_sent, ori_vecs
 
     def __str__(self):
         return "<Sent: %d sentences>" % len(self.vocab)
