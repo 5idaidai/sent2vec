@@ -8,6 +8,7 @@ Created on March 7, 2014
 '''
 from __future__ import division
 import numpy as np
+import multiprocessing as mp
 from utils import mod2file, mod_from_file
 
 class Vocab(object):
@@ -17,10 +18,10 @@ class Vocab(object):
     each word has following fields:
         index: pos in numpy vectors
     '''
-    def __init__(self, len_vec=50):
+    def __init__(self, len_vec=50, vocab={}, vecs=None):
         self.len_vec = len_vec
-        self.vocab = {}
-        self.vecs = None
+        self.vocab = vocab
+        self.vecs = vecs
         self.cur_idx = 0
 
     def get_window_vec(self, words = [], word_index=""):
@@ -34,7 +35,7 @@ class Vocab(object):
             return win_vec
 
         if word_index:
-            ids = word_index.split('-')
+            ids = [int(i) for i in word_index.split('-')]
             for id in ids:
                 win_vec += self.vecs[id, :]
             return win_vec
@@ -66,12 +67,21 @@ class Vocab(object):
         print 'load Vocab from (%s)' % path
         self.vocab = mod_from_file(path)
 
+    def export_mp_data(self, manager=None):
+        if self.vecs is None:
+            self.init_vecs()
+        if manager is None:
+            manager = mp.Manager()
+        vocab = manager.dict(self.vocab)
+        vecs = self.vecs.reshape( len(self.vocab) * self.len_vec)
+        vecs = mp.Array('d', vecs)
+        return [vocab, vecs]
+
     def __getitem__(self, key):
         if self.vecs is None:
             self.init_vecs()
         index = self.vocab[key]
         return self.vecs[index]
-
 
     def __str__(self):
         return "<Vocab: %d words>" % len(self.vocab)

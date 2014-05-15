@@ -7,6 +7,7 @@ Created on March 7, 2014
 @mail:  yanchunwei@outlook.com
 '''
 from __future__ import division
+import sys
 import time
 import math
 import numpy as np
@@ -147,6 +148,8 @@ class Sent2Vec(object):
         '''
         Js = []
         for no, sent in enumerate(self.dataset.sents):
+            if no % 1000 == 0: 
+                print no
             Jn = self.train_sent(sent)
             Js.append(Jn)
         # calculate Jn for this sentence
@@ -175,7 +178,12 @@ class Sent2Vec(object):
             noises = self.window_table.get_samples(self.k)
             #n_hs = [self.vocab.get_window_vec(s[1]) for s in noises ]
             # for a positive sample
+            #print 'h:', h
+            #print 'v:', v
             e_vT_h = np.e**np.dot(v.T, h)
+            #print "dot(v,h)", np.dot(v, h)
+            #print "e_vT_h", e_vT_h
+            #sys.exit(0);
             update_v = h / (1 + e_vT_h)
             update_h = v / (1 + e_vT_h)
             # add positive window's loss
@@ -252,14 +260,9 @@ class Sent2Vec(object):
 
 
 
-
-
-
-
 if __name__ == "__main__":
-    s = Sent2Vec('data/2.t', k=2, n_workers=1)
+    s = Sent2Vec('data/2.sample', k=3, n_workers=1)
     for i in range(40):
-        s.multi_thread_train()
+        #s.multi_thread_train()
+        s.train()
     s.tofile('1.mod')
-
-

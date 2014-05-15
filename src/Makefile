@@ -1,12 +1,15 @@
+CXXFLAGS=-O1
 CXX=g++
-CXXFLAGS=-g
 
-.PHONY: all
+.PHONY: all clean
 
-all: test_sent test_vec test_utils test_vocab test_window_table 
+all: sent2vec test_sent test_vec test_utils test_vocab test_window_table 
+
+sent2vec: sent2vec.cpp  utils.h sent.h vocab.h windowtable.h
+	g++ $(CXXFLAGS) sent2vec.cpp -o sent2vec
 
 test_sent: test/test_sent.o
-	g++ test/test_sent.o -o test/test_sent 
+	g++ test/test_sent.o -o test/test_sent
 
 test_vec: test/test_vec.o
 	g++ test/test_vec.o -o test/test_vec 
@@ -40,5 +43,10 @@ test/test_window_table.o: utils.h windowtable.h vocab.h test/test_window_table.c
 	g++ -c test/test_window_table.cpp
 	mv test_window_table.o test/
 
+sent2vec.o: sent2vec.cpp utils.h sent.h vocab.h windowtable.h
+	g++ -c sent2vec.cpp
 
 
+clean:
+	rm *.o
+	rm test/*.o

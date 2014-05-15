@@ -9,7 +9,9 @@ Created on March 7, 2014
 import sys
 sys.path.append('..')
 import unittest
+import numpy as np
 from sent import Sent
+from utils import Arr
 
 class TestSent(unittest.TestCase):
     def setUp(self):
@@ -40,6 +42,25 @@ class TestSent(unittest.TestCase):
             key = sent.strip()
             self.assertEqual(
                 no, self.sent.sent[key])
+
+    def test_vecs(self):
+        '''
+        test the API of Arr
+        '''
+        import multiprocessing as mp
+        manager = mp.Manager()
+        print self.sent.sent
+        self.sent.init_vecs()
+        sent = manager.dict(self.sent.sent)
+        vecs = self.sent.vecs.reshape( len(self.sent.sent) * 50)
+        vecs = mp.Array('d', vecs)
+        vecs = np.frombuffer(vecs.get_obj())
+        print vecs
+
+        new_sent = Sent(50, sent, vecs)
+        print new_sent["hello world"]
+
+
 
 
 

@@ -17,6 +17,10 @@ class Vocab : public Sent {
 
 public:
 
+    Vocab() {}
+
+    void init(int lenVec) { this->lenVec = lenVec; }
+
     Vocab(int lenVec): Sent(lenVec){ };
 
     /*
@@ -30,7 +34,7 @@ public:
         return vecs[id];
     }
     */
-    // init from plain text
+    // init wordmap from plain text
     void initFromFile(costr path)
     {
         cout << "init word map from path: " << path << endl;
@@ -47,7 +51,9 @@ public:
             sent = trim(sent);
             addFromSentence(sent);
         }
+        infile.close();
         cout << "get words " << dic.size() << endl;
+        initVecs();
     }
 
     void addFromSentence(costr sent)
@@ -97,8 +103,24 @@ public:
         return vec;
     }
 
+    void updateWindow(costr windowKey, Vec &grad, float alpha)
+    {
+        vstr wordIds;
+        split(windowKey, wordIds, "-");
+        for (vstr::iterator it=wordIds.begin();
+                it != wordIds.end(); ++it)
+        {
+            IndexType id = atoi(it->c_str());
+            updateVec(id, grad, alpha);
+        }
+    }
+
 
 }; // end class Vec
+
+
+
+
 
 //
 }; // end namespace

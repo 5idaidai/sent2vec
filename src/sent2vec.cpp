@@ -12,7 +12,7 @@ class Sent2Vec {
 public:
     Sent2Vec(costr path="", 
                 int lenVec=50, 
-                int windowSize=2, 
+                int windowSize=3, 
                 int k=20, float alpha=0.1): \
         path(path), lenVec(lenVec), windowSize(windowSize), k(k), alpha(alpha)
     {
@@ -54,11 +54,19 @@ public:
         }
 
         string sentence;
+        Vec Jns;
         while(getline(infile, sentence))
         {
             sentence = trim(sentence);
-            trainBySent(sentence);
+            float Jn = trainBySent(sentence);
+            if (Jn != 0.0)
+            {
+                Jns.append(Jn);
+            }
         }
+        cout << "Jn: " << Jns.mean() << endl;
+        Jns.clear();
+        infile.close();
     }
 
     float trainBySent(costr sentence)
@@ -79,7 +87,10 @@ public:
             vstr samples = windowTable.getSamples(this->k);
             // for positive sample
             // e^(v^T h)
+            cout << "v*h" << v_p->dot(h) << endl;
             float e_vT_h = exp( v_p->dot(h));
+            cout << "e_vT_h" << e_vT_h << endl;
+            exit(0);
             Vec update_v = h / ( 1.0 + e_vT_h);
             Vec update_h = (*v_p) / (1.0 + e_vT_h);
             Jn += log( 1.0 / ( 1.0 + 1.0/e_vT_h));
@@ -87,14 +98,15 @@ public:
 
             for(int idx=0; idx<samples.size(); idx++)
             {
+                string key = samples[idx];
                 // get noise's window vector
-                Vec n_h = vocab.getWindowVec(samples[idx]);
+                Vec n_h = vocab.getWindowVec(key);
                 float e_vT_h = exp(v_p->dot(n_h));
                 float frac_e_v_h = 1.0 - 1.0 / (1.0 + e_vT_h);
                 update_v -= (n_h * frac_e_v_h);
                 Vec update_n_h = (*v_p) * (-1.0 * frac_e_v_h);
                 // update noise
-                vocab.updateWindow(samples[idx], update_n_h, alpha);
+                vocab.updateWindow(key, update_n_h, alpha);
                 Jn += log( 1.0 / ( 1.0 + e_vT_h));
             }
 
@@ -124,7 +136,10 @@ int main()
 {
     using namespace sent2vec;
     Sent2Vec s2v("1.sample");
-    s2v.train("1.sample");
+    for(int i=0; i<50; i++)
+    {
+        s2v.train("1.sample");
+    }
 
 
 

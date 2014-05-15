@@ -9,6 +9,7 @@ Created on March 7, 2014
 from __future__ import division
 import math
 import numpy as np
+import multiprocessing as mp
 from random import random
 
 
@@ -54,22 +55,24 @@ class WindowTable(object):
     TABLE_SIZE = int(1e7)
     POWER = 0.75
 
-    def __init__(self, vocab, size=3):
+    def __init__(self, vocab, size=3, table=None, win_count_dic={}):
         '''
         self.window:
             dic of windows, fields: count, idx in window table
         '''
         self.size = size
         self.vocab = vocab
+        self.table = table
         self.win_counts = []
+        self.win_count_dic = win_count_dic
 
     def __call__(self, sents):
         '''
         sents:
             list of word 
         '''
-        win_count_dic = self._gen_win_count_dic_from_sent(sents)
-        self.gen_table(win_count_dic)
+        self.win_count_dic = self._gen_win_count_dic_from_sent(sents)
+        self.gen_table()
 
 
     def _gen_win_count_dic_from_sent(self, sents):
@@ -85,10 +88,10 @@ class WindowTable(object):
                 win_count_dic[idx] += 1
         return win_count_dic
 
-    def gen_table(self, win_count_dic={}):
+    def gen_table(self):
         self.table = np.empty( WindowTable.TABLE_SIZE, np.int64)
         # gen (window, count) pair
-        vocab = win_count_dic.items()
+        vocab = self.win_count_dic.items()
         self.win_counts = vocab
         vocab_size = len(vocab)
 
@@ -114,6 +117,9 @@ class WindowTable(object):
         index is the pos of the sample in window table
         key is the key of the window
         '''
+        if not self.win_counts:
+            self.win_counts = self.win_count_dic.items()
+
         samples = []
         for i  in xrange(k):
             rand = int(random() * WindowTable.TABLE_SIZE)
@@ -122,6 +128,16 @@ class WindowTable(object):
             samples.append(
                 (idx, key,))
         return samples
+
+    def export_mp_data(self, manager=None):
+        if self.table is None:
+            self.gen_table()
+        if manager is None:
+            manager = mp.Manager()
+
+        table = mp.Array('i', self.table)
+        win_count_dic = manager.dict(self.win_count_dic)
+        return table, win_count_dic
 
     def __getitem__(self, index):
         return self.table[index]

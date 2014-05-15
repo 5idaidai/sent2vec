@@ -22,17 +22,11 @@ public:
     typedef Vec vec_type;
     typedef vec_type::iterator vec_iter;
 
-    Sent(int lenVec): lenVec(lenVec), curIndex(0) { };
+    Sent(): lenVec(50), curIndex(0) { };
 
-    IndexType index(costr sent)
-    {
-        msit it = dic.find(sent);
-        if(it != dic.end())
-        {
-            return it->second;
-        }
-        return maxIndex;
-    }
+    void init(int lenVec) { this->lenVec = lenVec; }
+
+    Sent(int lenVec): lenVec(lenVec), curIndex(0) { };
 
     // init from plain text
     void initFromFile(costr path)
@@ -51,6 +45,17 @@ public:
             sent = trim(sent);
             add(sent);
         }
+        infile.close();
+    }
+
+    IndexType index(costr sent)
+    {
+        msit it = dic.find(sent);
+        if(it != dic.end())
+        {
+            return it->second;
+        }
+        return maxIndex;
     }
 
 
@@ -73,9 +78,16 @@ public:
         
     }
 
+    // update an Element's vec
+    void updateVec(IndexType id, Vec &grad, float alpha)
+    {
+        vecs[id] += (grad * alpha);
+        vecs[id].norm();
+    }
+
     void initVecs()
     {
-        cout << "create sent map: " << dic.size() << endl;
+        cout << "!create sent map: " << dic.size() << endl;
         vecs.clear();
         for (IndexType i=0; i<dic.size(); ++i)
         {

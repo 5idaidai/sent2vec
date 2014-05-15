@@ -7,15 +7,16 @@ Created on March 7, 2014
 @mail:  yanchunwei@outlook.com
 '''
 import numpy as np
+import multiprocessing as mp
 from utils import mod2file, mod_from_file
 
 class Sent(object):
     '''
     '''
-    def __init__(self, len_vec=50):
-        self.sent = {}
+    def __init__(self, len_vec=50, sent={}, vecs=None):
+        self.sent = sent
         self.cur_idx = 0
-        self.vecs = None
+        self.vecs = vecs
         self.len_vec = len_vec
 
     def index(self, sent):
@@ -45,6 +46,13 @@ class Sent(object):
         print 'load Vocab from (%s)' % path
         self.sent = mod_from_file(path)
 
+    def export_mp_data(self, manager=None):
+        if manager is None:
+            manager = mp.Manager()
+        sent = manager.dict(self.sent)
+        vecs = self.vecs.reshape( len(self.sent) * self.len_vec)
+        vecs = mp.Array('d', vecs)
+        return [sent, vecs]
 
     def __str__(self):
         return "<Sent: %d sentences>" % len(self.vocab)

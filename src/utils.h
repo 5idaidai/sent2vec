@@ -30,6 +30,8 @@ typedef unsigned int IndexType;
 
 const int lenVec = 50;
 
+const float E = 2.7183;
+
 const int maxIndex = UINT_MAX;
 
 // vector string
@@ -45,7 +47,8 @@ void test(string name)
 }
 
 
-string join(const vstr &words, costr token)
+template <class T>
+string join(const vector<T> &words, costr token)
 {
     stringstream output;
     for(int i=0; i<words.size()-1; i++)
@@ -182,7 +185,9 @@ public:
         vec.resize(size, 0.0);
     }
 
-    Vec(vector<value_type> vec)
+    Vec(const Vec &vec): vec(vec.vec) { }
+
+    Vec(vector<value_type> &vec)
     {
         this->vec = vec;
     }
@@ -199,9 +204,29 @@ public:
         return sum;
     }
 
+    void append(value_type val)
+    {
+        vec.push_back(val);
+    }
+
+    void clear()
+    {
+        vec.clear();
+    }
+
     void norm()
     {
         normVec(vec);
+    }
+
+    float mean()
+    {
+        float sum = 0.0;
+        for(vector<value_type>::iterator it=vec.begin(); it!=vec.end(); ++it)
+        {
+            sum += *it;
+        }
+        return sum / size();
     }
 
     value_type operator[](index_type id) const
@@ -224,6 +249,35 @@ public:
         return *this;
     }
 
+    Vec& operator/=(float val)
+    {
+        assert(val != 0.0);
+        for(int i=0; i<vec.size(); ++i)
+        {
+            vec[i] /= val;
+        }
+        return *this;
+    }
+
+    Vec& operator-=(float val)
+    {
+        for(int i=0; i<vec.size(); ++i)
+        {
+            vec[i] -= val;
+        }
+        return *this;
+    }
+
+    Vec& operator-=(const Vec& other)
+    {
+        assert(size() == other.size());
+        for(int i=0; i<vec.size(); ++i)
+        {
+            vec[i] -= other[i];
+        }
+        return *this;
+    }
+
     Vec& operator=(const Vec& other)
     {
         assert(vec.size() == other.size());
@@ -235,6 +289,29 @@ public:
             }
         }
         return *this;
+    }
+
+    friend Vec operator/(Vec &vec, float val)
+    {
+        assert( val != 0.0);
+        Vec newVec(vec);
+        for(vector<value_type>::iterator it=newVec.begin();
+                it!=newVec.end(); ++it)
+        {
+            *it /= val;
+        }
+        return newVec;
+    }
+
+    friend Vec operator*(Vec &vec, float val)
+    {
+        Vec newVec(vec);
+        for(vector<value_type>::iterator it=newVec.begin();
+                it!=newVec.end(); ++it)
+        {
+            *it *= val;
+        }
+        return newVec;
     }
 
     index_type size()
@@ -262,6 +339,11 @@ public:
     iterator end()
     {
         return vec.end();
+    }
+
+    vector<value_type>& getVector()
+    {
+        return vec;
     }
 
 

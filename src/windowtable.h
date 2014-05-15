@@ -19,6 +19,13 @@ vector<vstr>  genWindowsFromSentence(costr sent, int size)
     vstr words; 
     split(sent, words, " ");
     vector< vstr > windows;
+    // skip sentences too short
+    if(words.size() < size) 
+    {
+        // cout << "skip sentence:" << sent << endl;
+        return windows;
+    }
+
     for (int i=0; i<words.size() - size; i++)
     {
         vstr window; 
@@ -26,6 +33,20 @@ vector<vstr>  genWindowsFromSentence(costr sent, int size)
         windows.push_back(window);
     }
     return windows;
+}
+
+// generate key for a window
+// :parameters:
+//  @words: vector of words
+string genWindowKey(Vocab &vocab, vstr &words)
+{
+    vector<IndexType> ids;
+    for(vsit wt=words.begin(); wt!=words.end(); ++wt)
+    {
+        IndexType id = vocab.index(*wt);
+        ids.push_back(id);
+    }
+    return join(ids, "-");
 }
 
 vector<string> windows2WordIndexPair(Vocab &vocab, vector< vstr> windows)
@@ -57,6 +78,9 @@ public:
     // for window-count-map
     typedef map<string, IndexType> dicType ;
 
+    // default constructor
+    WindowTable():TABLE_SIZE(1e7), POWER(0.75){};
+
     /*
      * constructor
      *
@@ -65,9 +89,17 @@ public:
      */
     WindowTable(int size, Vocab *vocab, costr path, IndexType TABLE_SIZE=1e7, float POWER=0.75): size(size), vocab(vocab), path(path), TABLE_SIZE(TABLE_SIZE), POWER(POWER){ };
 
+    void init(int size, Vocab *vocab, costr path, IndexType TABLE_SIZE=1e7, float POWER=0.75)
+    {
+        this->size = size;
+        this->vocab = vocab;
+        this->path = path;
+    }
+
     // process a single sentence
     dicType initWinCountDicFromFile()
     {
+        cout << "initWinCountDicFromFile: size:" << size << endl;
 
         ifstream infile(path.c_str());
         string sent;
@@ -76,7 +108,7 @@ public:
         dicType winCountDic;
         while(getline(infile, sent))
         {
-            cout << "parsing: " << sent << endl;
+            //cout << "parsing: " << sent << endl;
             sent = trim(sent);
             vector<vstr> windows = genWindowsFromSentence(sent, size);
             vector<string> indexs = windows2WordIndexPair(*vocab, windows);
@@ -128,7 +160,6 @@ public:
         
         float d1 = pow(
                 (float)(winCountVec[i].second) / trainWindowsPowSum, POWER);
-        cout << "d1 " << d1 << endl;
 
         for(IndexType a=0; a<TABLE_SIZE; ++a)
         {
@@ -138,7 +169,6 @@ public:
                 i++;
                 d1 += pow(
                 (float)(winCountVec[i].second) / trainWindowsPowSum, POWER);
-                cout << "d1: " << d1 << endl;
                 if (i >= vocabSize) i = vocabSize - 1;
             } // end if
         } // end for

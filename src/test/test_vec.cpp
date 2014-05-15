@@ -82,6 +82,27 @@ void test_eq()
     vec.show();
 }
 
+// test operator/
+void test_div()
+{
+    test("div");
+    Vec vec(4);
+    vec[0] = 2;
+    vec[1] = 1;
+    vec[2] = 0;
+    vec[3] = 4;
+
+    cout << "ori:" << endl;
+    vec.show();
+    cout << "after / 3" << endl;
+    Vec a = vec / 3;
+    a.show();
+
+    cout << "after norm" << endl;
+    a.norm();
+    a.show();
+}
+
 
 int main()
 {
@@ -90,6 +111,7 @@ int main()
     test_norm();
     test_add_eq();
     test_eq();
+    test_div();
 
 
     return 0;
