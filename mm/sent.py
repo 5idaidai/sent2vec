@@ -6,30 +6,37 @@ Created on March 7, 2014
 @author: Chunwei Yan @ PKU
 @mail:  yanchunwei@outlook.com
 '''
+import os
+import logging
 import numpy as np
 import multiprocessing as mp
 from utils import mod2file, mod_from_file
+logging.basicConfig(filename = os.path.join(os.getcwd(), '1.log'), level = logging.INFO)
 
 class Sent(object):
     '''
     '''
     def __init__(self, len_vec=50, sent={}, vecs=None):
+        # key is hash(sent)
         self.sent = sent
         self.cur_idx = 0
         self.vecs = vecs
         self.len_vec = len_vec
+        logging.info("create sent len_vec(%d)" % len_vec)
+
 
     def index(self, sent):
         sent = sent.strip()
-        return self.sent[sent]
+        return self.sent[hash(sent)]
 
     def add(self, sent):
         '''
         sent: string
         '''
         sent = sent.strip()
-        if sent not in self.sent:
-            self.sent[sent] = self.cur_idx
+        key = hash(sent)
+        if key not in self.sent:
+            self.sent[key] = self.cur_idx
             self.cur_idx += 1
 
     def init_vecs(self):
@@ -61,7 +68,7 @@ class Sent(object):
     def __getitem__(self, key):
         if self.vecs is None:
             self.init_vecs()
-        key = key.strip()
+        key = hash(key.strip())
         index = self.sent[key]
         return self.vecs[index]
 

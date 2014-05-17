@@ -12,13 +12,16 @@ stemmer = PorterStemmer()
 
 import sys
 
+def to_stemer(sentence):
+    ws = [stemmer.stem(w) for w in sentence.split()]
+    return ' '.join(ws)
 
 
-for line in sys.stdin.readlines():
-    output = []
-    line = line.strip()
-    ws = [stemmer.stem(w) for w in line.split()]
-    output.append(' '.join(ws))
+if __name__ == '__main__':
+    for line in sys.stdin.readlines():
+        output = []
+        line = line.strip()
+        output.append(to_stemer(line))
 
-    sentence = '\n'.join(output)
-    sys.stdout.write(sentence+"\n")
+        sentence = '\n'.join(output)
+        sys.stdout.write(sentence+"\n")

@@ -10,19 +10,22 @@ import re
 import sys
 from nltk.tokenize import RegexpTokenizer
 
-while True:
-    sentence = sys.stdin.readline().strip()
-    if not sentence:
-        break
-
+def rm_punc(sentence):
     token = RegexpTokenizer(r'\w+')
     sentence = ' '.join(token.tokenize(sentence))
+    return sentence
 
-    #sentence = re.sub("(('')|[_].|\(.*\))|([.]$)", "", sentence)
-    
-    #words = [w.lower() for w in sentence.split()]
-    #sentence = ' '.join(words)
-    if not sentence:
-        sentence = "EMPTY"
+if __name__ == '__main__':
+    for sentence in sys.stdin.readlines():
+        sentence = sentence.strip()
 
-    sys.stdout.write(sentence+"\n")
+        sentence = rm_punc(sentence)
+
+        #sentence = re.sub("(('')|[_].|\(.*\))|([.]$)", "", sentence)
+        
+        #words = [w.lower() for w in sentence.split()]
+        #sentence = ' '.join(words)
+        if not sentence:
+            sentence = "EMPTY"
+
+        sys.stdout.write(sentence+"\n")

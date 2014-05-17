@@ -8,14 +8,19 @@ Created on Feb 24, 2014
 '''
 import sys
 
-while True:
-    sentence = sys.stdin.readline().strip()
-    if not sentence:
-        break
-
-    words = [w.lower() for w in sentence.split()]
+def tolower(sent):
+    words = [w.lower() for w in sent.split()]
     sentence = ' '.join(words)
+    return sentence
 
-    if not sentence:
-        sentence = "EMPTY"
-    sys.stdout.write(sentence+"\n")
+
+if __name__ == '__main__':
+
+    for sentence in sys.stdin.readlines():
+        sentence = sentence.strip()
+
+        sentence = tolower(sentence)
+
+        if not sentence:
+            sentence = "EMPTY"
+        sys.stdout.write(sentence+"\n")

@@ -7,9 +7,12 @@ Created on March 7, 2014
 @mail:  yanchunwei@outlook.com
 '''
 from __future__ import division
+import os
+import logging
 import numpy as np
 import multiprocessing as mp
 from utils import mod2file, mod_from_file
+logging.basicConfig(filename = os.path.join(os.getcwd(), '1.log'), level = logging.INFO)
 
 class Vocab(object):
     '''
@@ -20,9 +23,11 @@ class Vocab(object):
     '''
     def __init__(self, len_vec=50, vocab={}, vecs=None):
         self.len_vec = len_vec
+        # key is hash(str)
         self.vocab = vocab
         self.vecs = vecs
         self.cur_idx = 0
+        logging.info("create vocab len_vec(%d)" % len_vec)
 
     def get_window_vec(self, words = [], word_index=""):
         if self.vecs is None:
@@ -30,7 +35,7 @@ class Vocab(object):
         win_vec = np.zeros(self.len_vec)
         if words:
             for w in words:
-                index = self.vocab[w]
+                index = self.vocab[hash(w)]
                 win_vec += self.vecs[index]
             return win_vec
 
@@ -41,8 +46,9 @@ class Vocab(object):
             return win_vec
 
     def add(self, word):
-        if word not in self.vocab:
-            self.vocab[word] = self.cur_idx
+        key = hash(word)
+        if key not in self.vocab:
+            self.vocab[key] = self.cur_idx
             self.cur_idx += 1
 
     def add_from_sent(self, sent):
@@ -86,6 +92,7 @@ class Vocab(object):
     def __getitem__(self, key):
         if self.vecs is None:
             self.init_vecs()
+        key = hash(key)
         index = self.vocab[key]
         return self.vecs[index]
 

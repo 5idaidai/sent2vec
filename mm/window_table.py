@@ -11,6 +11,9 @@ import math
 import numpy as np
 import multiprocessing as mp
 from random import random
+import os
+import logging
+logging.basicConfig(filename = os.path.join(os.getcwd(), '1.log'), level = logging.INFO)
 
 
 def gen_windows_from_sentence(sent, size):
@@ -30,7 +33,7 @@ def gen_windows_from_sentence(sent, size):
 def windows_to_word_index_pair(vocab, windows):
     indexs = []
     for w in windows:
-        idx = "-".join([str(vocab.vocab[v]) for v in w])
+        idx = "-".join([str(vocab.vocab[hash(v)]) for v in w])
         indexs.append(idx)
     return indexs
 
@@ -65,6 +68,7 @@ class WindowTable(object):
         self.table = table
         self.win_counts = []
         self.win_count_dic = win_count_dic
+        logging.info("create window_table: window_size(%d)" % size)
 
     def __call__(self, sents):
         '''
