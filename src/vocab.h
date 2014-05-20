@@ -83,6 +83,7 @@ public:
         {
             vec += (*this)[*it];
         }
+        vec /= words.size();
         return vec;
     }
 

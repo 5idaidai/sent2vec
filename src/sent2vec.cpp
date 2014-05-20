@@ -12,9 +12,9 @@ class Sent2Vec {
 public:
     Sent2Vec(costr path="", 
                 int lenVec=50, 
-                int windowSize=3, 
-                int k=20, float alpha=0.1): \
-        path(path), lenVec(lenVec), windowSize(windowSize), k(k), alpha(alpha)
+                int windowSize=2, 
+                int k=20, float alpha=0.1, string randPath="rand.txt"): \
+        path(path), lenVec(lenVec), windowSize(windowSize), k(k), alpha(alpha), randPath(randPath)
     {
         // init objects
         vocab.init(lenVec);
@@ -71,53 +71,57 @@ public:
 
     float trainBySent(costr sentence)
     {
-        float Jn = 0.0;
         vector<vstr> windows = genWindowsFromSentence(sentence, windowSize);
         if(windows.empty()) return 0.0;
-        // pointer to the real vector
-        Vec *v_p = &sent[sentence];
+        IndexType sent_id = sent.index(sentence);
+        // sentence vector
+        Vec v = sent[sentence];
+        //cout << "v : " << endl;
+        //v.show();
 
-        for(int wn=0; wn<windows.size(); ++wn)
+        Vec updateV(lenVec);
+
+        float Jn = 0.0;
+
+        for (vector<vector<string> >::iterator wt=windows.begin(); wt!=windows.end(); ++wt)
         {
-            vector<IndexType> wordIdxs;
-            // get word's id in vocabulary
-            string windowKey = genWindowKey(vocab, windows[wn]);
-            Vec h = vocab.getWindowVec(windows[wn]);
-            // generate noise samples
-            vstr samples = windowTable.getSamples(this->k);
-            // for positive sample
-            // e^(v^T h)
-            cout << "v*h" << v_p->dot(h) << endl;
-            float e_vT_h = exp( v_p->dot(h));
-            cout << "e_vT_h" << e_vT_h << endl;
-            exit(0);
-            Vec update_v = h / ( 1.0 + e_vT_h);
-            Vec update_h = (*v_p) / (1.0 + e_vT_h);
-            Jn += log( 1.0 / ( 1.0 + 1.0/e_vT_h));
-            vocab.updateWindow(windowKey, update_h, alpha);
-
-            for(int idx=0; idx<samples.size(); idx++)
+            // positive  -----------
+            // window vector
+            string window_key = genWindowKey(vocab, *wt);
+            Vec h = vocab.getWindowVec(window_key);
+            //cout << "h: " << endl;
+            //h.show();
+            float e_h_v = exp(h.dot(v));
+            //cout << "e_h_v " << e_h_v << endl;
+            Vec partial_J_h = v * (1.0 / (1.0 + e_h_v));
+            Vec partial_J_v = h * (1.0 / (1.0 + e_h_v));
+            updateV += partial_J_v;
+            Jn += log(1.0 / (1.0 + e_h_v));
+            // update vector
+            // sent.updateVec(sent_id, partial_J_v, alpha);
+            vocab.updateWindow(window_key, partial_J_h, alpha);
+            // add noises
+            vector<string> noises = windowTable.getSamples(this->k);
+            for(vector<string>::iterator wt=noises.begin(); wt!=noises.end(); ++wt)
             {
-                string key = samples[idx];
-                // get noise's window vector
-                Vec n_h = vocab.getWindowVec(key);
-                float e_vT_h = exp(v_p->dot(n_h));
-                float frac_e_v_h = 1.0 - 1.0 / (1.0 + e_vT_h);
-                update_v -= (n_h * frac_e_v_h);
-                Vec update_n_h = (*v_p) * (-1.0 * frac_e_v_h);
-                // update noise
-                vocab.updateWindow(key, update_n_h, alpha);
-                Jn += log( 1.0 / ( 1.0 + e_vT_h));
+                //cout << "noise: " << *wt << endl;
+                Vec h = vocab.getWindowVec(*wt);
+                float e_h_v = exp(h.dot(v));
+                //cout << "h*v" << h.dot(v) << endl;
+                //cout << "e_h_v" << e_h_v << endl;
+                Vec partial_J_h = v * (e_h_v / (1.0 + e_h_v));
+                Vec partial_J_v = h * (e_h_v / (1.0 + e_h_v));
+                Jn += log(1.0 / (1.0 + e_h_v));
+                updateV += partial_J_v;
+                // update vectors
+                vocab.updateWindow(*wt, partial_J_h, alpha);
             }
 
-            update_v /= (1.0 + this->k);
-
-            IndexType sentId = sent.index(sentence);
-            sent.updateVec(sentId, update_v, alpha);
+            updateV /= (1+ this->k);
+            sent.updateVec(sent_id, updateV, alpha);
         }
         return Jn;
     }
-
 
 private:
     string path;
@@ -127,6 +131,7 @@ private:
     Vocab vocab;
     Sent sent;
     int windowSize;
+    string randPath;
     WindowTable windowTable;
 };
 //
@@ -134,10 +139,12 @@ private:
 
 int main()
 {
+    srand((unsigned) time(NULL));
     using namespace sent2vec;
     Sent2Vec s2v("1.sample");
     for(int i=0; i<50; i++)
     {
+        cout << "i:" << i << endl;
         s2v.train("1.sample");
     }
 

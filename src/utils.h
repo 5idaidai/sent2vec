@@ -116,10 +116,11 @@ void genRandVec(int lenVec, vector<ItemType> &vec)
 {
     vec.reserve(lenVec);
     float rv;
-    srand((unsigned) time(NULL));
+    //srand((unsigned) time(NULL));
     for(int i=0; i<lenVec; i++)
     {
-        rv = (float)rand() / RAND_MAX; 
+        //rv = (static_cast<float>(rand()) / static_cast<float>(RAND_MAX) - 0.5) / 100;
+        rv = 0.01;
         vec.push_back(rv);
     }
 }
@@ -143,7 +144,7 @@ void normVec(vector<ItemType> &vec)
 void genNormRandVec(int lenVec, vector<ItemType> &vec)
 {
     genRandVec(lenVec, vec);
-    normVec(vec);
+    //normVec(vec);
 }
 
 void showVec(vector<ItemType> &vec)

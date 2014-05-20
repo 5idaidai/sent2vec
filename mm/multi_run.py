@@ -211,7 +211,7 @@ def multi_process_run(data_path, model_output_path, k=2, n_workers=2, n_turns=10
 
 if __name__ == '__main__':
     multi_process_run(
-        "data/2.sample", 
+        "/home/chunwei/Lab/sent2vec/src2/1.sample",
         "models/2.pk", 
         k=2, 
         n_workers=2, 

@@ -81,7 +81,7 @@ public:
     // update an Element's vec
     void updateVec(IndexType id, Vec &grad, float alpha)
     {
-        vecs[id] += (grad * alpha);
+        vecs[id] -= (grad * alpha);
         vecs[id].norm();
     }
 
@@ -94,15 +94,49 @@ public:
             vector<ItemType> _vec;
             genNormRandVec(lenVec, _vec);
             Vec vec(_vec);
+            //vec.show();
             vecs.push_back(vec);
         }
+    }
+
+    void initVecs(costr path)
+    {
+        cout << "init random from file: " << path << endl;
+        ifstream infile(path.c_str());
+        if(!infile)
+        {
+            cout << "*ERROR: no such file :" << path << endl;
+            exit(-1);
+        }
+        vecs.clear();
+        string line;
+        for (IndexType i=0; i<dic.size(); ++i)
+        {
+            getline(infile, line);
+            if (line.empty()) 
+            {
+                cout << "ERROR: random init file is not long enough" << endl;
+            }
+            vector<string> words;
+            line = trim(line);
+            split(line, words, " ");
+            assert(words.size() == lenVec);
+
+            Vec vec(lenVec);
+            for (IndexType j=0; j<lenVec; j++)
+            {
+                vec[j] = atof(words[j].c_str());
+            }
+            vecs.push_back(vec);
+        }
+        infile.close();
     }
 
     Vec toVec(costr key)
     {
         if (vecs.empty())
         {
-            initVecs();
+            initVecs("rand.txt");
         }
         msit it = dic.find(key); 
         if (it != dic.end())
@@ -116,7 +150,7 @@ public:
     {
         if (vecs.empty())
         {
-            initVecs();
+            initVecs("rand.txt");
         }
         msit it = dic.find(key); 
 
