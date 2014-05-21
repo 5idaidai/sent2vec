@@ -2,6 +2,7 @@
 #define _SENTENCE2VEC_SENT_H_
 
 #include <iostream>
+#include <sstream>
 #include <fstream>
 #include <string>
 #include <climits>
@@ -165,6 +166,36 @@ public:
     {
         return dic.size();
     }
+
+    // model parameters to file
+    void tofile(costr path) {
+        cout << "output Sent to file: " << path << endl;
+        const string SPACE = "\t";
+        stringstream output;
+        // output dic
+        for (msit it=dic.begin(); it!=dic.end(); ++it) {
+            output << it->first << SPACE << it->second << endl;
+        }
+        // output vecs
+        for(vector<Vec>::iterator it=vecs.begin(); it!=vecs.end(); ++it) {
+            for(Vec::iterator vt=it->begin(); vt!=it->end(); ++vt) {
+                output << *vt << SPACE;
+            }
+            output << endl;
+        }
+        // write to file
+        ofstream file(path.c_str(), ios::out);
+        if(! file) {
+            cout << "ERROR, can not open file: " << path << endl;
+            exit(-1);
+        }
+        file << output.str();
+        file.close();
+    }
+
+    void fromfile(costr path) {
+    }
+
 
 protected:
     int lenVec;

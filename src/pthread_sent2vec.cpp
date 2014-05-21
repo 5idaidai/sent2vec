@@ -90,17 +90,13 @@ public:
                 updateV += partial_J_v;
                 Jn += log(1.0 / (1.0 + e_h_v));
                 // update vector
-                // sent.updateVec(sent_id, partial_J_v, alpha);
                 vocab.updateWindow(window_key, partial_J_h, alpha);
                 // add noises
                 vector<string> noises = windowTable.getSamples(k);
                 for(vector<string>::iterator wt=noises.begin(); wt!=noises.end(); ++wt)
                 {
-                    //cout << "noise: " << *wt << endl;
                     Vec h = vocab.getWindowVec(*wt);
                     float e_h_v = exp(h.dot(v));
-                    //cout << "h*v" << h.dot(v) << endl;
-                    //cout << "e_h_v" << e_h_v << endl;
                     Vec partial_J_h = v * (e_h_v / (1.0 + e_h_v));
                     Vec partial_J_v = h * (e_h_v / (1.0 + e_h_v));
                     Jn += log(1.0 / (1.0 + e_h_v));
@@ -125,8 +121,8 @@ public:
     Sent2Vec(
             costr ipath, 
             int iwindowSize=2, 
-            float ialpha = 0.1, 
             int inThreads = 2, 
+            float ialpha = 0.1, 
             int ik = 10) {
         // init data
         path = ipath;
@@ -185,7 +181,7 @@ private:
 
 int main()
 {
-    Sent2Vec sent2vec("1.sample");
+    Sent2Vec sent2vec("1.sample", 2, 3);
     sent2vec.initData();
     sent2vec.run();
     printf("main done!");
