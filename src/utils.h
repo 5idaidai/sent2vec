@@ -161,7 +161,7 @@ void showVec(vector<ItemType> &vec)
 // add from_vector to to_vector
 void addVec(const vector<ItemType> &from, vector<ItemType> &to)
 {
-    assert(from.size() == to.size());
+    //assert(from.size() == to.size());
 
     for(int i=0; i<from.size(); i++)
     {
@@ -196,7 +196,7 @@ public:
 
     value_type dot(Vec &other)
     {
-        assert(vec.size() == other.size());
+        //assert(vec.size() == other.size());
         value_type sum = 0.0;
 
         for(index_type i=0; i<vec.size(); ++i)
@@ -243,7 +243,7 @@ public:
 
     Vec& operator+=(const Vec& other)
     {
-        assert(vec.size() == other.size());
+        //assert(vec.size() == other.size());
         for(int i=0; i<vec.size(); ++i)
         {
             vec[i] += other[i];
@@ -272,7 +272,7 @@ public:
 
     Vec& operator-=(const Vec& other)
     {
-        assert(size() == other.size());
+        //assert(size() == other.size());
         for(int i=0; i<vec.size(); ++i)
         {
             vec[i] -= other[i];
@@ -282,7 +282,7 @@ public:
 
     Vec& operator=(const Vec& other)
     {
-        assert(vec.size() == other.size());
+        //assert(vec.size() == other.size());
         if(this != &other)
         {
             for(int i=0; i<vec.size(); i++)

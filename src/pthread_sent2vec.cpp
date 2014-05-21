@@ -139,11 +139,11 @@ public:
     void initData() {
         vocab.init(lenVec);
         sent.init(lenVec);
-        vocab.initVecs("rand.txt");
-        sent.initVecs("rand.txt");
         windowTable.init(windowSize, &vocab, path);
         vocab.initFromFile(path);
         sent.initFromFile(path);
+        vocab.initVecs("rand.txt");
+        sent.initVecs("rand.txt");
         windowTable.genTable();
     }
 
@@ -151,6 +151,7 @@ public:
         cout << "start producer" << endl;
         Producer *producer = new Producer;
         producer->start();
+
         for (int i=0; i<nThreads; ++i)
         {
             cout << "start trainer " << i << endl;
