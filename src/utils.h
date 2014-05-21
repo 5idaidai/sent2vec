@@ -7,7 +7,6 @@
 #include <sstream>
 #include <vector>
 #include <map>
-#include <map>
 #include <climits>
 #include <vector>
 #include <cstdio>
@@ -15,6 +14,8 @@
 #include <cmath>
 #include <ctime>
 #include <cassert>
+#include "pthread.h"
+#include <deque>
 using namespace std;
 
 namespace sent2vec {
@@ -354,7 +355,74 @@ private:
 }; // end class Vec
 
 
+// for multi-thread  --------------------
+template <typename T>
+class ThreadQueue {
+public:
+    ThreadQueue(int maxSize=-1): maxSize(maxSize), initMaxSize(-1) {
+        pthread_mutex_init(&m_mutex, NULL);
+        pthread_cond_init(&not_full_cond, NULL);
+        pthread_cond_init(&not_empty_cond, NULL);
+    }
 
+    ~ThreadQueue() {
+        lock();
+        queue.clear();
+        unlock();
+    }
+
+    void push(T data)
+    {
+        lock();
+        if(maxSize != initMaxSize) {
+            while (queue.size() == maxSize) {
+                pthread_cond_wait(&not_full_cond, &m_mutex); }
+        }
+        queue.push_back(data);
+        unlock();
+        pthread_cond_signal(&not_empty_cond);
+    }
+
+    T pop() {
+        T ret;
+        lock();
+        while (queue.empty()) {
+            pthread_cond_wait(&not_empty_cond, &m_mutex); }
+        ret = queue.front();
+        queue.pop_front();
+        unlock();
+        if (maxSize != initMaxSize)
+        { 
+            pthread_cond_signal(&not_full_cond);
+        }
+        return ret;
+    }
+
+    int size() {
+        lock();
+        int ret = queue.size();
+        unlock();
+        return ret;
+    }
+
+    void lock()
+    {
+        pthread_mutex_lock(&m_mutex);
+    }
+
+    void unlock()
+    {
+        pthread_mutex_unlock(&m_mutex);
+    }
+
+private:
+    int maxSize;
+    const int initMaxSize;
+    pthread_mutex_t m_mutex;
+    pthread_cond_t not_full_cond;
+    pthread_cond_t not_empty_cond;
+    deque<T> queue;
+};
 
 //
 }; // end namespace

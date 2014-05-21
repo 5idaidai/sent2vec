@@ -53,7 +53,6 @@ public:
         }
         infile.close();
         cout << "get words " << dic.size() << endl;
-        initVecs();
     }
 
     void addFromSentence(costr sent)
@@ -68,10 +67,6 @@ public:
 
     vec_type getWindowVec(vector<string> &words)
     {
-        if (vecs.empty())
-        {
-            initVecs();
-        }
 
         // init to 0
         vec_type vec(lenVec);

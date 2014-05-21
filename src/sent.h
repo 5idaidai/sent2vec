@@ -22,11 +22,15 @@ public:
     typedef Vec vec_type;
     typedef vec_type::iterator vec_iter;
 
-    Sent(): lenVec(50), curIndex(0) { };
+    Sent(): lenVec(50), curIndex(0) {
+        pthread_mutex_init(&m_mutex, NULL);
+    };
 
-    void init(int lenVec) { this->lenVec = lenVec; }
+    void init(int lenVec, bool isPthread=false) { this->lenVec = lenVec; this->isPthread=isPthread; }
 
-    Sent(int lenVec): lenVec(lenVec), curIndex(0) { };
+    Sent(int lenVec): lenVec(lenVec), curIndex(0) { 
+        pthread_mutex_init(&m_mutex, NULL);
+    };
 
     // init from plain text
     void initFromFile(costr path)
@@ -81,8 +85,10 @@ public:
     // update an Element's vec
     void updateVec(IndexType id, Vec &grad, float alpha)
     {
+        pthread_mutex_lock(&m_mutex);
         vecs[id] -= (grad * alpha);
         vecs[id].norm();
+        pthread_mutex_unlock(&m_mutex);
     }
 
     void initVecs()
@@ -134,10 +140,6 @@ public:
 
     Vec toVec(costr key)
     {
-        if (vecs.empty())
-        {
-            initVecs("rand.txt");
-        }
         msit it = dic.find(key); 
         if (it != dic.end())
         {
@@ -148,10 +150,6 @@ public:
 
     Vec & operator[] (costr key)
     {
-        if (vecs.empty())
-        {
-            initVecs("rand.txt");
-        }
         msit it = dic.find(key); 
 
         assert(it != dic.end());
@@ -173,6 +171,9 @@ protected:
     IndexType curIndex;
     map<string, IndexType> dic;
     vector< Vec > vecs;
+    bool isPthread;
+    // for vectors change
+    pthread_mutex_t  m_mutex;
 };
 
 //

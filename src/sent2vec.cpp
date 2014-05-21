@@ -31,11 +31,13 @@ public:
     void createVocab()
     {
         vocab.initFromFile(path);
+        vocab.initVecs("rand.txt");
     }
 
     void createSent()
     {
         sent.initFromFile(path);
+        sent.initVecs("rand.txt");
     }
 
     void createWindowTable()
