@@ -23,6 +23,46 @@ string path;    // data's path
 int k;
 wqueue<string> workQueue; // save stentences
 
+// record  costs
+class Results {
+public:
+    Results() {
+        pthread_mutex_init(&mutex, NULL);
+    }
+
+    void append(float Jn) {
+        pthread_mutex_lock(&mutex);
+        results.append(Jn);
+        pthread_mutex_unlock(&mutex);
+    }
+
+    void show() {
+        results.show();
+    }
+
+    int size() {
+        return results.size();
+    }
+
+    bool empty() {
+        return results.empty();
+    }
+
+    void clear() {
+        results.clear();
+    }
+
+    float mean() {
+        return results.mean();
+    }
+
+private:
+    Vec results;
+    pthread_mutex_t mutex;
+};
+
+Results results;
+
 /*
  * read senences from file and put them to WorkQueue
  */
@@ -41,9 +81,7 @@ public:
         while(getline(infile, sentence))
         {
             sentence = trim(sentence);
-            cout << ".. push " << endl;
             workQueue.add(sentence);
-            cout << ".. end push " << endl;
         }
         for(int i=0; i<2*nThreads; ++i)
         {
@@ -54,6 +92,7 @@ public:
     }
 };
 
+
 class Trainer : public Thread {
 public:
     void *run() {
@@ -62,7 +101,6 @@ public:
             
             if (sentence == STOP_MARK) break;
             // train by sentence
-            cout << ">> pop " << self() << endl;
             vector<vstr> windows = genWindowsFromSentence(sentence, windowSize);
             if(windows.empty()) continue;
             IndexType sent_id = sent.index(sentence);
@@ -109,7 +147,7 @@ public:
                 sent.updateVec(sent_id, updateV, alpha);
             }
             // output result
-            // return Jn;
+            results.append(Jn);
         }
         return NULL;
     }
@@ -123,7 +161,7 @@ public:
             int iwindowSize=2, 
             int inThreads = 2, 
             float ialpha = 0.1, 
-            int ik = 10) {
+            int ik = 20) {
         // init data
         path = ipath;
         windowSize = iwindowSize;
@@ -144,13 +182,13 @@ public:
     }
 
     void run() {
-        cout << "start producer" << endl;
-        Producer *producer = new Producer;
+        //cout << "start producer" << endl;
+        producer = new Producer;
         producer->start();
 
         for (int i=0; i<nThreads; ++i)
         {
-            cout << "start trainer " << i << endl;
+            //cout << "start trainer " << i << endl;
             Trainer *trainer = new Trainer;
             threads.push_back(trainer);
             trainer->start();
@@ -158,19 +196,29 @@ public:
         // producer.join();
         producer->join();
         for(int i=0; i<nThreads; ++i) {
-            cout << "threads " << i << " join" << endl;
+            //cout << "threads " << i << " join" << endl;
             (threads[i])->join();
         }
-        printf("main done!");
-    }
-
-    ~Sent2Vec() {
-        /*
+        // clear memory
         delete producer;
+        producer = NULL;
         for(int i=0; i<nThreads; ++i) {
             delete threads[i];
         }
-        */
+        threads.clear();
+
+        // output cost
+        if( ! results.empty())
+        {
+            float J = results.mean();
+            cout << "J: " << J << endl;
+            //cout << "size: " << results.size() << endl;
+            results.clear();
+        }
+        //cout << "main done!" << endl;
+    }
+
+    ~Sent2Vec() {
     }
 
 private:
@@ -183,7 +231,10 @@ int main()
 {
     Sent2Vec sent2vec("1.sample", 2, 3);
     sent2vec.initData();
-    sent2vec.run();
+    for (int i=0; i<20; i++) {
+        cout << i << endl;
+        sent2vec.run();
+    }
     printf("main done!");
     return 0;
 }

@@ -231,6 +231,10 @@ public:
         return sum / size();
     }
 
+    bool empty() {
+        return vec.empty();
+    }
+
     value_type operator[](index_type id) const
     {
         return vec[id];

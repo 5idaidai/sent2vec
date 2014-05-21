@@ -1,9 +1,12 @@
-CXXFLAGS=-O1
+CXXFLAGS=-O2
 CXX=g++
 
 .PHONY: all clean
 
-all: sent2vec test_sent test_vec test_utils test_vocab test_window_table 
+all: sent2vec test_sent test_vec test_utils test_vocab test_window_table psent2vec
+
+psent2vec: pthread_sent2vec.cpp  utils.h sent.h vocab.h windowtable.h ../threads/thread.cpp ../wqueue/wqueue.h
+	g++ $(CXXFLAGS) pthread_sent2vec.cpp ../threads/thread.cpp -o psent2vec -lpthread
 
 sent2vec: sent2vec.cpp  utils.h sent.h vocab.h windowtable.h
 	g++ $(CXXFLAGS) sent2vec.cpp -o sent2vec
