@@ -7,8 +7,11 @@
 #include <string>
 #include <climits>
 #include <map>
+#include <pthread.h>
 #include "utils.h"
 using namespace std;
+
+#define USE_MUTEX_LOCK
 
 namespace sent2vec {
 //
@@ -24,13 +27,21 @@ public:
     typedef vec_type::iterator vec_iter;
 
     Sent(): lenVec(50), curIndex(0) {
+    #ifdef USE_MUTEX_LOCK
         pthread_mutex_init(&m_mutex, NULL);
+    #else
+        pthread_spin_init(&m_mutex, 0);
+    #endif
     };
 
     void init(int lenVec, bool isPthread=false) { this->lenVec = lenVec; this->isPthread=isPthread; }
 
     Sent(int lenVec): lenVec(lenVec), curIndex(0) { 
+    #ifdef USE_MUTEX_LOCK
         pthread_mutex_init(&m_mutex, NULL);
+    #else
+        pthread_spin_init(&m_mutex, 0);
+    #endif
     };
 
     // init from plain text
@@ -86,10 +97,19 @@ public:
     // update an Element's vec
     void updateVec(IndexType id, Vec &grad, float alpha)
     {
+    #ifdef USE_MUTEX_LOCK
         pthread_mutex_lock(&m_mutex);
+    #else
+        pthread_spin_lock(&m_mutex);
+    #endif
+        
         vecs[id] -= (grad * alpha);
         vecs[id].norm();
+    #ifdef USE_MUTEX_LOCK
         pthread_mutex_unlock(&m_mutex);
+    #else
+        pthread_spin_unlock(&m_mutex);
+    #endif
     }
 
     void initVecs()
@@ -204,7 +224,12 @@ protected:
     vector< Vec > vecs;
     bool isPthread;
     // for vectors change
+
+#ifdef USE_MUTEX_LOCK
     pthread_mutex_t  m_mutex;
+#else
+    pthread_spinlock_t m_mutex;
+#endif
 };
 
 //

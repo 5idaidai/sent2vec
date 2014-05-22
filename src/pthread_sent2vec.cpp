@@ -231,10 +231,13 @@ int main()
 {
     Sent2Vec sent2vec("1.sample", 2, 3);
     sent2vec.initData();
-    for (int i=0; i<20; i++) {
+    for (int i=0; i<10; i++) {
         cout << i << endl;
         sent2vec.run();
     }
+
+    sent.tofile("2.sent");
+    vocab.tofile("2.vocab");
     printf("main done!");
     return 0;
 }
