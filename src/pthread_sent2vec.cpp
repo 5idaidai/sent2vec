@@ -22,6 +22,9 @@ int windowSize;
 string path;    // data's path
 int k;
 wqueue<string> workQueue; // save stentences
+// save the cost of each turn
+// used to check converge
+Vec Js;
 
 // record  costs
 class Results {
@@ -161,7 +164,7 @@ public:
             int iwindowSize=2, 
             int inThreads = 2, 
             float ialpha = 0.1, 
-            int ik = 20) {
+            int ik = 20, float convergence=0.01) : convergence(convergence) {
         // init data
         path = ipath;
         windowSize = iwindowSize;
@@ -179,6 +182,15 @@ public:
         vocab.initVecs("rand.txt");
         sent.initVecs("rand.txt");
         windowTable.genTable();
+    }
+
+    bool isConverge() {
+        int size = Js.size();
+        // at least 8 turns
+        if(size > 8) {
+            if(Js[size-1] - Js[size-2] < convergence) return true;
+        }
+        return false;
     }
 
     void run() {
@@ -211,8 +223,8 @@ public:
         if( ! results.empty())
         {
             float J = results.mean();
+            Js.append(J);
             cout << "J: " << J << endl;
-            //cout << "size: " << results.size() << endl;
             results.clear();
         }
         //cout << "main done!" << endl;
@@ -224,6 +236,7 @@ public:
 private:
     Producer *producer;
     vector<Trainer*> threads;
+    float convergence;
 };
 
 
@@ -231,9 +244,14 @@ int main()
 {
     Sent2Vec sent2vec("1.sample", 2, 3);
     sent2vec.initData();
-    for (int i=0; i<10; i++) {
+    for (int i=0; i<60; i++) {
         cout << i << endl;
         sent2vec.run();
+        if(sent2vec.isConverge()) {
+            cout << "detect convergence: " << endl;
+            Js.show();
+            break;
+        }
     }
 
     sent.tofile("2.sent");

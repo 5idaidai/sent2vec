@@ -12,7 +12,8 @@
 using namespace std;
 
 namespace sent2vec {
-//
+
+const IndexType RAND_TABLE_SIZE = 200000;
 
 vector<vstr>  genWindowsFromSentence(costr sent, int size)
 {
@@ -94,6 +95,13 @@ public:
         this->size = size;
         this->vocab = vocab;
         this->path = path;
+        // init random status
+        currentRandom = 27;
+        // init random table
+        for(int i=0; i<RAND_TABLE_SIZE; i++) {
+            IndexType randValue = rand() % TABLE_SIZE;
+            rands[i] = randValue;
+        }
     }
 
     // process a single sentence
@@ -183,16 +191,19 @@ public:
         }
         vstr samples;
         // init random env
-        srand( (unsigned)time(NULL));
+        //srand( (unsigned)time(NULL));
 
         for(int i=0; i<k; i++)
         {
             // generate a random int
-            IndexType randValue = rand() % TABLE_SIZE;
-            IndexType idx = table[randValue];
+            //IndexType randValue = rand() % TABLE_SIZE;
+            currentRandom = rands[currentRandom % RAND_TABLE_SIZE]; 
+            IndexType idx = table[currentRandom];
             string key = winCountVec[idx].first;
             samples.push_back(key);
+            //cout << idx << " ";
         }
+        //cout << endl;
         return samples;
     }
 
@@ -207,6 +218,8 @@ private:
     // window count map to vector
     // index(12-1221) , count
     vector< pair<string, IndexType> > winCountVec;
+    IndexType rands[RAND_TABLE_SIZE];
+    IndexType currentRandom;
 };
 
 //
