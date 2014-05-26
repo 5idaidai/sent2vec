@@ -428,6 +428,47 @@ private:
     deque<T> queue;
 };
 
+
+// record  costs
+class Results {
+public:
+    Results() {
+        pthread_mutex_init(&mutex, NULL);
+    }
+
+    void append(float Jn) {
+        pthread_mutex_lock(&mutex);
+        results.append(Jn);
+        pthread_mutex_unlock(&mutex);
+    }
+
+    void show() {
+        results.show();
+    }
+
+    int size() {
+        return results.size();
+    }
+
+    bool empty() {
+        return results.empty();
+    }
+
+    void clear() {
+        results.clear();
+    }
+
+    float mean() {
+        return results.mean();
+    }
+
+private:
+    Vec results;
+    pthread_mutex_t mutex;
+};
+
+
+
 //
 }; // end namespace
 

@@ -186,6 +186,10 @@ public:
         }
     }
 
+    Vec & operator[] (IndexType id) {
+        return vecs[id];
+    }
+
     IndexType size() const
     {
         return dic.size();
