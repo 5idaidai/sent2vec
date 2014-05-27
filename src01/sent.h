@@ -106,9 +106,11 @@ public:
     #else
         pthread_spin_lock(&m_mutex);
     #endif
-        
+        float vecs_sum = vecs[id].sum();
+
         vecs[id] -= (grad * alpha);
         vecs[id].norm();
+
     #ifdef USE_MUTEX_LOCK
         pthread_mutex_unlock(&m_mutex);
     #else
@@ -133,6 +135,7 @@ public:
     void initVecs(costr path)
     {
         cout << "init random from file: " << path << endl;
+        cout << "map size: " << dic.size() << endl;
         ifstream infile(path.c_str());
         if(!infile)
         {
@@ -184,6 +187,7 @@ public:
             IndexType idx = it->second;
             return vecs[idx];
         }
+        cout << key << " not in dic!"<< endl;
     }
 
     Vec & operator[] (IndexType id) {

@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <ctime>
+#define NDEBUG
 #include <cassert>
 #include "pthread.h"
 #include <deque>
@@ -161,7 +162,7 @@ void showVec(vector<ItemType> &vec)
 // add from_vector to to_vector
 void addVec(const vector<ItemType> &from, vector<ItemType> &to)
 {
-    //assert(from.size() == to.size());
+    assert(from.size() == to.size());
 
     for(int i=0; i<from.size(); i++)
     {
@@ -221,14 +222,22 @@ public:
         normVec(vec);
     }
 
-    float mean()
-    {
+    float mean() {
         float sum = 0.0;
         for(vector<value_type>::iterator it=vec.begin(); it!=vec.end(); ++it)
         {
             sum += *it;
         }
         return sum / size();
+    }
+
+    float sum() {
+        float sum = 0.0;
+        for(vector<value_type>::iterator it=vec.begin(); it!=vec.end(); ++it)
+        {
+            sum += *it;
+        }
+        return sum;
     }
 
     bool empty() {
@@ -247,7 +256,7 @@ public:
 
     Vec& operator+=(const Vec& other)
     {
-        //assert(vec.size() == other.size());
+        assert(vec.size() == other.size());
         for(int i=0; i<vec.size(); ++i)
         {
             vec[i] += other[i];
@@ -276,7 +285,7 @@ public:
 
     Vec& operator-=(const Vec& other)
     {
-        //assert(size() == other.size());
+        assert(size() == other.size());
         for(int i=0; i<vec.size(); ++i)
         {
             vec[i] -= other[i];
@@ -286,9 +295,10 @@ public:
 
     Vec& operator=(const Vec& other)
     {
-        //assert(vec.size() == other.size());
+        assert(vec.size() == other.size());
         if(this != &other)
         {
+            vec.resize(other.size());
             for(int i=0; i<vec.size(); i++)
             {
                 vec[i] = other[i];
@@ -332,6 +342,7 @@ public:
 
     void show()
     {
+        cout << "size: --------" << size() << "---------" << endl;
         showVec(vec);
     }
     

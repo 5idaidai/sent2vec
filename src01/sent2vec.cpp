@@ -6,15 +6,20 @@ using namespace sent2vec;
 
 int main()
 {
+    assert(1 == 2);
     srand((unsigned) time(NULL));
-    Sent2Vec sent2vec("1.sample", 3, 2, 0.1, 15);
+    Sent2Vec sent2vec("1.sample", 
+        3, 
+        1, 
+        0.5, 
+        20);
     sent2vec.initData();
-    for (int i=0; i<60; i++) {
+    for (int i=0; i<100; i++) {
         cout << i << endl;
         sent2vec.run();
         if(sent2vec.isConverge()) {
             cout << "detect convergence: " << endl;
-            Js.show();
+            //Js.show();
             break;
         }
     }

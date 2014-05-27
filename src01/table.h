@@ -12,8 +12,8 @@ using namespace std;
 
 namespace sent2vec {
 
-const IndexType RAND_TABLE_SIZE = 200000;
-
+const IndexType RAND_TABLE_SIZE = 2000000;
+const IndexType TABLE_SIZE = 1e7;
 
 
 /*
@@ -22,7 +22,7 @@ const IndexType RAND_TABLE_SIZE = 200000;
 class RandTable {
 
 public:
-    RandTable() {
+    RandTable()  {
         // init current status
         curRand = 21;
         // init random table
@@ -34,6 +34,7 @@ public:
 
     IndexType getRand() {
         curRand = rands[curRand % RAND_TABLE_SIZE];
+        return curRand;
     }
 
 private:
@@ -48,13 +49,11 @@ class WordTable {
 public:
     typedef map<string, IndexType> dicType ;
 
-    WindowTable():vocab_p(NULL), TABLE_SIZE(1e7), POWER(0.75){}
+    WordTable():vocab_p(NULL), POWER(0.75){}
 
-    WindowTable(Vocab *vocab_p, costr path, 
-        IndexType TABLE_SIZE=1e7, 
+    WordTable(Vocab *vocab_p, costr path, 
         float POWER=0.75): 
-        vocab_p(vocab_p), path(path), 
-        TABLE_SIZE(TABLE_SIZE), POWER(POWER){
+        vocab_p(vocab_p), path(path), POWER(POWER){
             init(vocab_p, path);
     }
 
@@ -87,10 +86,11 @@ public:
             }
         }
         // to index vec
-        for(map<string, IndexType>::iterator it=wordCountDic.begin(); it!=wordCountDic.end(); ++it) {
-            IndexType idx = vocab.index(it->first);
+        for(map<string, int>::iterator it=wordCountDic.begin(); it!=wordCountDic.end(); ++it) {
+            IndexType idx = vocab_p->index(it->first);
             assert(idx != maxIndex);
-            idxCountMap.push_back(
+            // index to count
+            idxCountMap.insert(
                 map<IndexType, int>::value_type(
                     idx, it->second));
         }
@@ -98,22 +98,23 @@ public:
 
     const vector<IndexType> &genTable() {
         float trainPowSum = 0.0;
-        vector<string> 
-
+        int vocabSize = idxCountMap.size();
+        // init table 
+        table.resize(TABLE_SIZE);
         for(map<IndexType, int>::iterator it=idxCountMap.begin(); it!=idxCountMap.end(); ++it) {
             trainPowSum += pow(it->second, POWER);
         }
 
         IndexType i = 0;
         float d1 = pow(
-            (float)(idxCountMap[i].second) / trainWindowsPowSum, POWER);
+            (float)(idxCountMap[i]) / trainPowSum, POWER);
 
         for(IndexType a=0; a<TABLE_SIZE; ++a) {
             table[a] = i;
             if(a * 1.0 / TABLE_SIZE > d1) {
                 i++;
                 d1 += pow(
-                    (float)(idxCountMap[i].second) / trainWindowsPowSum, POWER)
+                    (float)(idxCountMap[i]) / trainPowSum, POWER);
                 if (i >= vocabSize) i = vocabSize - 1;
             } // if
         } // for
@@ -121,10 +122,11 @@ public:
     }
 
     vector<IndexType> getSamples(int k) {
-        if(table.empty) genTable();
+        if(table.empty() ) genTable();
         vector<IndexType> samples;
         for(int i=0; i<k; i++) {
-            IndexType item = randTable.getRand();
+            IndexType randValue = randTable.getRand();
+            IndexType item = table[randValue];
             samples.push_back(item);
         }
         return samples;
@@ -132,9 +134,11 @@ public:
 
 private:
     RandTable randTable;
+    Vocab *vocab_p;
     map<IndexType, int> idxCountMap;
     vector<IndexType> table;
     string path;
+    float POWER;
 
 }; // class WordTable
 

@@ -26,43 +26,6 @@ wqueue<string> workQueue; // save stentences
 // used to check converge
 Vec Js;
 
-// record  costs
-class Results {
-public:
-    Results() {
-        pthread_mutex_init(&mutex, NULL);
-    }
-
-    void append(float Jn) {
-        pthread_mutex_lock(&mutex);
-        results.append(Jn);
-        pthread_mutex_unlock(&mutex);
-    }
-
-    void show() {
-        results.show();
-    }
-
-    int size() {
-        return results.size();
-    }
-
-    bool empty() {
-        return results.empty();
-    }
-
-    void clear() {
-        results.clear();
-    }
-
-    float mean() {
-        return results.mean();
-    }
-
-private:
-    Vec results;
-    pthread_mutex_t mutex;
-};
 
 Results results;
 
@@ -181,17 +144,9 @@ public:
         sent.initFromFile(path);
         vocab.initVecs("rand.txt");
         sent.initVecs("rand.txt");
-        windowTable.genTable();
+        wordTable_pgenTable();
     }
 
-    bool isConverge() {
-        int size = Js.size();
-        // at least 8 turns
-        if(size > 8) {
-            if(Js[size-1] - Js[size-2] < convergence) return true;
-        }
-        return false;
-    }
 
     void run() {
         //cout << "start producer" << endl;
@@ -231,6 +186,15 @@ public:
     }
 
     ~Sent2Vec() {
+    }
+
+    bool isConverge() {
+        int size = Js.size();
+        // at least 8 turns
+        if(size > 8) {
+            if(Js[size-1] - Js[size-2] < convergence) return true;
+        }
+        return false;
     }
 
 private:
