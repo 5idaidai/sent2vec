@@ -194,11 +194,13 @@ private:
 class Sent2Vec {
 public:
     Sent2Vec(
-            costr ipath, 
-            int iwindowSize=2, 
-            int inThreads = 2, 
-            float ialpha = 0.1, 
-            int ik = 20, float convergence=0.01) : convergence(convergence) {
+        costr ipath, 
+        int iwindowSize=2, 
+        int inThreads = 2, 
+        int ik = 20, 
+        float ialpha = 0.1, 
+        float convergence=0.01, 
+        costr topath="models/1") : convergence(convergence), topath(topath) {
         // init data
         path = ipath;
         windowSize = iwindowSize;
@@ -263,6 +265,13 @@ public:
         //cout << "main done!" << endl;
     }
 
+    void tofile() {
+        string vocabPath = topath + ".vocab.txt";
+        string sentPath = topath + ".sent.txt";
+        vocab.tofile(vocabPath);
+        sent.tofile(sentPath);
+    }
+
     ~Sent2Vec() {
     }
 
@@ -285,6 +294,7 @@ private:
     // used to check converge
     Vec Js;
     Results results;
+    string topath;
 }; // class sent2vec
 
 

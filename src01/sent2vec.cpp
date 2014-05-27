@@ -10,9 +10,12 @@ int main()
     srand((unsigned) time(NULL));
     Sent2Vec sent2vec("1.sample", 
         3, 
-        1, 
+        3, 
+        20, 
         0.5, 
-        20);
+        0.01, 
+        "models/1");
+
     sent2vec.initData();
     for (int i=0; i<100; i++) {
         cout << i << endl;
@@ -26,6 +29,7 @@ int main()
 
     //sent.tofile("2.sent");
     //vocab.tofile("2.vocab");
+    sent2vec.tofile();
     printf("main done!");
     return 0;
 }
