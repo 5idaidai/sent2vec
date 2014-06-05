@@ -11,7 +11,7 @@
 #include "utils.h"
 using namespace std;
 
-#define USE_MUTEX_LOCK
+// #define USE_MUTEX_LOCK
 
 namespace sent2vec {
 //
@@ -25,6 +25,10 @@ public:
     typedef map<string, IndexType>::iterator msit;
     typedef Vec vec_type;
     typedef vec_type::iterator vec_iter;
+    // for iterator
+    typedef map<string, IndexType>::iterator iterator;
+    typedef map<string, IndexType>::const_iterator const_iterator;
+
 
     Sent(): lenVec(50), curIndex(0) {
     #ifdef USE_MUTEX_LOCK
@@ -97,19 +101,10 @@ public:
     // update an Element's vec
     void updateVec(IndexType id, Vec &grad, float alpha)
     {
-    #ifdef USE_MUTEX_LOCK
-        pthread_mutex_lock(&m_mutex);
-    #else
-        pthread_spin_lock(&m_mutex);
-    #endif
-        
-        vecs[id] -= (grad * alpha);
+        for(int i=0; i<lenVec; i++) {
+            vecs[id][i] -= grad[i] * alpha;
+        }
         vecs[id].norm();
-    #ifdef USE_MUTEX_LOCK
-        pthread_mutex_unlock(&m_mutex);
-    #else
-        pthread_spin_unlock(&m_mutex);
-    #endif
     }
 
     void initVecs()
@@ -129,6 +124,7 @@ public:
     void initVecs(costr path)
     {
         cout << "init random from file: " << path << endl;
+        cout << "map size: " << dic.size() << endl;
         ifstream infile(path.c_str());
         if(!infile)
         {
@@ -155,6 +151,13 @@ public:
                 vec[j] = atof(words[j].c_str());
             }
             vecs.push_back(vec);
+            // TODO debug
+            float vecs_mean = vec.mean();
+            if (vecs_mean != vecs_mean) {
+                cout << "init vecs_mean is Nan" << endl;
+                vec.show();
+                exit(-1);
+            }
         }
         infile.close();
     }
@@ -180,6 +183,11 @@ public:
             IndexType idx = it->second;
             return vecs[idx];
         }
+        cout << key << " not in dic!"<< endl;
+    }
+
+    Vec & operator[] (IndexType id) {
+        return vecs[id];
     }
 
     IndexType size() const
@@ -215,6 +223,15 @@ public:
 
     void fromfile(costr path) {
     }
+
+    iterator begin() {
+        return dic.begin();
+    }
+
+    iterator end() {
+        return dic.end();
+    }
+
 
 
 protected:
